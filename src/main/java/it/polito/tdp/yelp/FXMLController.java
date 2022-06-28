@@ -68,7 +68,15 @@ public class FXMLController {
 
     @FXML
     void doCalcolaPercorso(ActionEvent event) {
-
+    	txtResult.clear();
+    	
+    	
+    	for(Business b : model.cerca(cmbB1.getValue(), cmbB2.getValue(), Double.parseDouble(txtX2.getText()))) {
+    		txtResult.appendText(b+"");
+    	}
+    	
+    	txtResult.appendText(model.getKm()+"");
+    	
     }
 
 

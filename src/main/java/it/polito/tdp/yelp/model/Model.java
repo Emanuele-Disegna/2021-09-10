@@ -1,5 +1,6 @@
 package it.polito.tdp.yelp.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +18,7 @@ public class Model {
 	private YelpDao dao;
 	private List<Adiacenza> adiacenze;
 	private Graph<Business, DefaultWeightedEdge> grafo;
+	private List<Business> solOttima;
 	
 	public Model() {
 		dao = new YelpDao();
@@ -66,4 +68,52 @@ public class Model {
 	public List<String> getCitta(){
 		return dao.getCitta();
 	}
+
+	public List<Business> cerca(Business b1, Business b2, double soglia) {
+		List<Business> parziale = new ArrayList<>();
+		solOttima = new ArrayList<>();
+		parziale.add(b1);
+		
+		cercaRicorsiva(parziale, b2, soglia, controllo(Graphs.neighborListOf(grafo, b1), soglia, b2, parziale));
+		
+		return solOttima;
+	}
+
+	private void cercaRicorsiva(List<Business> parziale, Business b2, double soglia, List<Business> possibili) {
+		if(parziale.size()>solOttima.size() && parziale.contains(b2)) {
+			solOttima = new ArrayList<>(parziale);
+			return;
+		}
+		
+		for(Business b : possibili) {
+			parziale.add(b);
+			cercaRicorsiva(parziale, b2, soglia, controllo(Graphs.neighborListOf(grafo, b), soglia, b2, parziale));
+			parziale.remove(b);
+		}
+	}
+
+	private List<Business> controllo(List<Business> vicini, double soglia, Business b2, List<Business> parziale) {
+		List<Business> ret = new ArrayList<>();
+		
+		for(Business b : vicini) {
+			if((b.equals(b2) || b.getStars()>=soglia) && !parziale.contains(b)) {
+				ret.add(b);
+			}
+		}
+
+		return ret;
+	}
+
+	public double getKm() {
+		double somma = 0;
+		
+		for(int i=0; i<solOttima.size()-1; i++) {
+			if(grafo.containsEdge(grafo.getEdge(solOttima.get(i), solOttima.get(i+1)))) {
+				somma += grafo.getEdgeWeight(grafo.getEdge(solOttima.get(i), solOttima.get(i+1)));
+			}
+		}
+		
+		return somma;
+	}
+
 }
